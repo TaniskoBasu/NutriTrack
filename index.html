@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BMI &amp; Calorie Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-page: #f4f7f6;
+      --bg-surface: #ffffff;
+      --bg-sidebar: #111827;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --danger: #ef4444;
+      --border: #e5e7eb;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .app-shell { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 260px;
+      background-color: var(--bg-sidebar);
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 16px;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 8px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .brand-icon {
+      font-size: 28px;
+      background: rgba(16, 185, 129, 0.15);
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+    }
+
+    .brand h1 { font-size: 1.2rem; font-weight: 700; }
+    .brand p { font-size: 0.78rem; color: #9ca3af; }
+
+    .nav-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 24px;
+      flex: 1;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 12px 14px;
+      border: none;
+      border-radius: var(--radius-md);
+      background: transparent;
+      color: #d1d5db;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+    }
+
+    .nav-btn:hover { background: rgba(255, 255, 255, 0.07); color: #ffffff; }
+    .nav-btn.active { background: var(--primary); color: #ffffff; font-weight: 600; }
+
+    .sidebar-footer {
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .footer-label { font-size: 0.75rem; color: #9ca3af; margin-bottom: 8px; }
+    .footer-label code { color: #6ee7b7; }
+    .backup-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .main-content {
+      flex: 1;
+      padding: 28px 36px;
+      max-width: 1280px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .top-bar h2 { font-size: 1.6rem; font-weight: 800; }
+    .subtitle { color: var(--text-muted); font-size: 0.9rem; }
+
+    .user-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .badge-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .banner-alert {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .hidden { display: none !important; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+
+    .stat-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-card.primary-stat {
+      border-color: #a7f3d0;
+      background: linear-gradient(145deg, #ffffff 0%, #f0fdf4 100%);
+    }
+
+    .stat-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .stat-value-row { display: flex; align-items: baseline; gap: 8px; margin: 10px 0 8px; }
+    .stat-value { font-size: 2rem; font-weight: 800; }
+    .stat-unit { font-size: 0.9rem; color: var(--text-muted); font-weight: 500; }
+    .stat-subtext { font-size: 0.83rem; color: var(--text-muted); }
+
+    .progress-container {
+      width: 100%;
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 999px;
+      transition: width 0.35s ease, background-color 0.3s ease;
+    }
+
+    .progress-bar.over-limit { background: var(--danger); }
+
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .mt-lg { margin-top: 24px; }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .card-header h3 { font-size: 1.15rem; font-weight: 700; }
+
+    .two-col-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .form-group { margin-bottom: 16px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #374151;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: #ffffff;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+
+    .form-control-sm { width: auto; min-width: 180px; padding: 6px 10px; font-size: 0.85rem; }
+
+    .segmented-control {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: #f3f4f6;
+      padding: 4px;
+      border-radius: var(--radius-md);
+    }
+
+    .seg-btn {
+      border: none;
+      background: transparent;
+      padding: 8px 12px;
+      border-radius: 7px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-family: inherit;
+    }
+
+    .seg-btn.active {
+      background: #ffffff;
+      color: var(--text-main);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .quick-grams {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .chip-btn {
+      border: 1px solid var(--border);
+      background: #f9fafb;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .chip-btn:hover { border-color: var(--primary); color: var(--primary-hover); background: #ecfdf5; }
+
+    .calorie-preview-box {
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .preview-label { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); }
+    .preview-formula { font-size: 0.85rem; color: #475569; margin-top: 2px; }
+    .preview-total { font-size: 1.5rem; font-weight: 800; color: var(--primary-hover); }
+
+    .helper-text { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; }
+
+    .food-db-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+      gap: 10px;
+      max-height: 380px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .food-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      cursor: pointer;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .food-card:hover, .food-card.selected { border-color: var(--primary); background: #ecfdf5; }
+    .food-card-name { font-weight: 700; font-size: 0.95rem; text-transform: capitalize; }
+    .food-card-cal { font-size: 0.8rem; color: var(--text-muted); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.92rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      font-family: inherit;
+      text-decoration: none;
+    }
+
+    .btn-primary { background: var(--primary); color: #ffffff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-outline { background: rgba(255, 255, 255, 0.06); color: #e5e7eb; border-color: rgba(255, 255, 255, 0.18); }
+    .btn-outline:hover { background: rgba(255, 255, 255, 0.14); color: #ffffff; }
+    .btn-danger-outline { background: transparent; color: var(--danger); border-color: #fecaca; }
+    .btn-danger-outline:hover { background: #fef2f2; }
+    .btn-sm { padding: 6px 12px; font-size: 0.82rem; }
+    .btn-block { width: 100%; }
+
+    .log-list { display: flex; flex-direction: column; gap: 10px; }
+    .log-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: #fafafa;
+    }
+
+    .log-item-left { display: flex; align-items: center; gap: 12px; }
+    .log-index {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #e5e7eb;
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+    }
+
+    .log-food-name { font-weight: 700; text-transform: capitalize; }
+    .log-food-grams { font-size: 0.85rem; color: var(--text-muted); }
+    .log-item-right { display: flex; align-items: center; gap: 14px; }
+    .log-calories { font-weight: 700; color: #065f46; }
+
+    .icon-delete-btn {
+      border: none;
+      background: transparent;
+      color: #9ca3af;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .icon-delete-btn:hover { color: var(--danger); background: #fef2f2; }
+    .empty-state { text-align: center; padding: 32px 16px; color: var(--text-muted); }
+
+    .pill-badge {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .pill-badge.underweight { background: #dbeafe; color: #1e40af; }
+    .pill-badge.normal { background: #d1fae5; color: #065f46; }
+    .pill-badge.overweight { background: #fef3c7; color: #92400e; }
+    .pill-badge.obese { background: #fee2e2; color: #991b1b; }
+
+    .profile-details-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .profile-detail-box {
+      padding: 12px 14px;
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+
+    .profile-detail-box span { display: block; font-size: 0.78rem; color: var(--text-muted); }
+    .profile-detail-box strong { font-size: 1.05rem; color: var(--text-main); }
+
+    .bmi-scale-box h4 { font-size: 0.9rem; margin-bottom: 10px; color: var(--text-muted); }
+    .bmi-scale-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .scale-item { padding: 8px 12px; border-radius: var(--radius-sm); display: flex; justify-content: space-between; font-size: 0.82rem; }
+    .scale-item.underweight { background: #eff6ff; color: #1e40af; }
+    .scale-item.normal { background: #ecfdf5; color: #065f46; }
+    .scale-item.overweight { background: #fffbeb; color: #92400e; }
+    .scale-item.obese { background: #fef2f2; color: #991b1b; }
+
+    .history-day-card { border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 16px; overflow: hidden; }
+    .history-day-header { background: #f9fafb; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-weight: 700; }
+    .history-day-body { padding: 12px 16px; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #111827;
+      color: #ffffff;
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      font-size: 0.9rem;
+      font-weight: 500;
+      z-index: 1000;
+    }
+
+    @media (max-width: 900px) {
+      .app-shell { flex-direction: column; }
+      .sidebar { width: 100%; padding: 16px; }
+      .nav-menu { flex-direction: row; overflow-x: auto; margin-top: 14px; }
+      .nav-btn { width: auto; white-space: nowrap; }
+      .two-col-layout { grid-template-columns: 1fr; }
+      .main-content { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">🥗</div>
+        <div>
+          <h1>NutriTrack</h1>
+          <p>BMI &amp; Calorie Tracker</p>
+        </div>
+      </div>
+
+      <nav class="nav-menu" aria-label="Main Navigation">
+        <button class="nav-btn active" data-tab="today">📊 <span>Today's Total</span></button>
+        <button class="nav-btn" data-tab="add-food">🍽️ <span>Add Food</span></button>
+        <button class="nav-btn" data-tab="profile">👤 <span>Profile &amp; BMI</span></button>
+        <button class="nav-btn" data-tab="history">📅 <span>History</span></button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <p class="footer-label">Data Sync (Python <code>data.json</code>)</p>
+        <div class="backup-actions">
+          <button id="exportJsonBtn" class="btn btn-outline btn-sm">⬇️ Export JSON</button>
+          <label for="importJsonInput" class="btn btn-outline btn-sm">⬆️ Import JSON</label>
+          <input type="file" id="importJsonInput" accept=".json,application/json" hidden />
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-bar">
+        <div>
+          <h2 id="pageTitle">Today's Summary</h2>
+          <p id="currentDateDisplay" class="subtitle"></p>
+        </div>
+        <div class="user-badge">
+          <span class="badge-dot"></span>
+          <span id="headerUserName">Guest (Set up Profile)</span>
+        </div>
+      </header>
+
+      <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+      <!-- TAB 1: TODAY'S TOTAL -->
+      <section id="tab-today" class="tab-panel active">
+        <div id="profilePromptBanner" class="banner-alert hidden">
+          <div><strong>Tip:</strong> Set up your Profile to calculate your BMI, BMR, and daily calorie goal (TDEE)!</div>
+          <button class="btn btn-primary btn-sm" data-goto="profile">Set Up Profile</button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card primary-stat">
+            <span class="stat-label">Calories Consumed Today</span>
+            <div class="stat-value-row">
+              <span id="todayConsumedVal" class="stat-value">0</span>
+              <span class="stat-unit">kcal</span>
+            </div>
+            <div class="progress-container">
+              <div id="calorieProgressBar" class="progress-bar" style="width: 0%"></div>
+            </div>
+            <p id="calorieStatusText" class="stat-subtext">0% of daily goal</p>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Daily Target (TDEE)</span>
+            <div class="stat-value-row">
+              <span id="todayTargetVal" class="stat-value">—</span>
+              <span class="stat-unit">kcal</span>
+            </div>
+            <p id="todayBmrSubtext" class="stat-subtext">BMR: — kcal/day</p>
+          </div>
+
+          <div class="stat-card">
+            <span id="remainingLabel" class="stat-label">Calories Remaining</span>
+            <div class="stat-value-row">
+              <span id="todayRemainingVal" class="stat-value">—</span>
+              <span class="stat-unit">kcal</span>
+            </div>
+            <p id="remainingSubtext" class="stat-subtext">Set profile to track target</p>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Current BMI</span>
+            <div class="stat-value-row">
+              <span id="todayBmiVal" class="stat-value">—</span>
+              <span id="todayBmiBadge" class="pill-badge">Not set</span>
+            </div>
+            <p id="todayWeightHeightSubtext" class="stat-subtext">Weight &amp; Height not set</p>
+          </div>
+        </div>
+
+        <div class="card mt-lg">
+          <div class="card-header">
+            <h3>Today's Food Log</h3>
+            <button class="btn btn-primary btn-sm" data-goto="add-food">+ Log Food</button>
+          </div>
+          <div id="todayLogsContainer"></div>
+        </div>
+      </section>
+
+      <!-- TAB 2: ADD FOOD -->
+      <section id="tab-add-food" class="tab-panel">
+        <div class="two-col-layout">
+          <div class="card">
+            <div class="card-header"><h3>Log Food Eaten Today</h3></div>
+            <form id="addFoodForm" novalidate>
+              <div class="form-group">
+                <label>Food Selection Method</label>
+                <div class="segmented-control">
+                  <button type="button" class="seg-btn active" id="modeDbBtn">Database Food</button>
+                  <button type="button" class="seg-btn" id="modeCustomBtn">Custom Food</button>
+                </div>
+              </div>
+
+              <div id="dbFoodGroup" class="form-group">
+                <label for="foodDbSelect">Select Food (or click a card on the right)</label>
+                <select id="foodDbSelect" class="form-control"></select>
+              </div>
+
+              <div id="customFoodGroup" class="hidden">
+                <div class="form-group">
+                  <label for="customFoodName">Custom Food Name</label>
+                  <input type="text" id="customFoodName" class="form-control" placeholder="e.g., Avocado, Paratha, Protein Shake" />
+                </div>
+                <div class="form-group">
+                  <label for="customCalPer100">Calories per 100g (kcal)</label>
+                  <input type="number" id="customCalPer100" class="form-control" placeholder="e.g., 160" min="0" step="0.1" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="foodGrams">Amount Eaten (in grams)</label>
+                <input type="number" id="foodGrams" class="form-control" placeholder="e.g., 150" min="1" step="1" required />
+                <div class="quick-grams">
+                  <span>Quick amounts:</span>
+                  <button type="button" class="chip-btn" data-grams="50">50g</button>
+                  <button type="button" class="chip-btn" data-grams="100">100g</button>
+                  <button type="button" class="chip-btn" data-grams="150">150g</button>
+                  <button type="button" class="chip-btn" data-grams="200">200g</button>
+                  <button type="button" class="chip-btn" data-grams="250">250g</button>
+                </div>
+              </div>
+
+              <div class="calorie-preview-box">
+                <div>
+                  <span class="preview-label">Estimated Calories</span>
+                  <p id="previewFormula" class="preview-formula">Select food &amp; enter grams</p>
+                </div>
+                <div class="preview-total">
+                  <span id="previewCaloriesVal">0.0</span> <small>kcal</small>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block">Add to Today's Log</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3>Available Foods (per 100g)</h3>
+              <input type="search" id="foodSearchInput" class="form-control form-control-sm" placeholder="Search food..." />
+            </div>
+            <p class="helper-text">Click any food item below to select it automatically:</p>
+            <div id="foodDbGrid" class="food-db-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: PROFILE -->
+      <section id="tab-profile" class="tab-panel">
+        <div class="two-col-layout">
+          <div class="card">
+            <div class="card-header"><h3>Update Profile Details</h3></div>
+            <form id="profileForm" novalidate>
+              <div class="form-group">
+                <label for="profName">Name</label>
+                <input type="text" id="profName" class="form-control" placeholder="Enter your name" required />
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="profAge">Age (years)</label>
+                  <input type="number" id="profAge" class="form-control" placeholder="e.g., 25" min="1" max="120" required />
+                </div>
+                <div class="form-group">
+                  <label for="profGender">Gender</label>
+                  <select id="profGender" class="form-control" required>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="profWeight">Weight (kg)</label>
+                  <input type="number" id="profWeight" class="form-control" placeholder="e.g., 70" min="1" step="0.1" required />
+                </div>
+                <div class="form-group">
+                  <label for="profHeight">Height (cm)</label>
+                  <input type="number" id="profHeight" class="form-control" placeholder="e.g., 170" min="1" step="0.1" required />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="profActivity">Activity Level</label>
+                <select id="profActivity" class="form-control" required>
+                  <option value="1">1. Sedentary (little or no exercise)</option>
+                  <option value="2">2. Lightly active (exercise 1-3 days/week)</option>
+                  <option value="3">3. Moderately active (exercise 3-5 days/week)</option>
+                  <option value="4">4. Very active (exercise 6-7 days/week)</option>
+                  <option value="5">5. Super active (intense daily exercise or physical job)</option>
+                </select>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block">Calculate &amp; Save Profile</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><h3>Current Profile &amp; Metrics</h3></div>
+            <div id="profileSummaryView"></div>
+
+            <div class="bmi-scale-box mt-lg">
+              <h4>BMI Reference Categories</h4>
+              <div class="bmi-scale-list">
+                <div class="scale-item underweight"><span>Underweight</span><strong>&lt; 18.5</strong></div>
+                <div class="scale-item normal"><span>Normal</span><strong>18.5 – 24.9</strong></div>
+                <div class="scale-item overweight"><span>Overweight</span><strong>25.0 – 29.9</strong></div>
+                <div class="scale-item obese"><span>Obese</span><strong>&ge; 30.0</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: HISTORY -->
+      <section id="tab-history" class="tab-panel">
+        <div class="card">
+          <div class="card-header">
+            <h3>Calorie Intake History</h3>
+            <button id="clearHistoryBtn" class="btn btn-danger-outline btn-sm">Clear All History</button>
+          </div>
+          <div id="historyContainer"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const FOOD_DB = {
+      roti: 297, rice: 130, dal: 116, egg: 155, milk: 61,
+      paneer: 265, chicken: 239, apple: 52, banana: 89, curd: 98,
+      oats: 389, bread: 265, potato: 77, almonds: 579, ghee: 900
+    };
+
+    const STORAGE_KEY = "bmi_calorie_tracker_data_v1";
+
+    function round1(num) { return Math.round(num * 10) / 10; }
+
+    function calculateBmi(weightKg, heightCm) {
+      const heightM = heightCm / 100;
+      return round1(weightKg / (heightM * heightM));
+    }
+
+    function getBmiCategory(bmi) {
+      if (bmi < 18.5) return "Underweight";
+      if (bmi < 25.0) return "Normal";
+      if (bmi < 30.0) return "Overweight";
+      return "Obese";
+    }
+
+    function calculateBmr(weightKg, heightCm, age, gender) {
+      const base = (10 * weightKg) + (6.25 * heightCm) - (5 * age);
+      return ["m", "male"].includes(String(gender).toLowerCase()) ? round1(base + 5) : round1(base - 161);
+    }
+
+    function calculateTdee(bmr, activityChoice) {
+      const factors = { "1": 1.2, "2": 1.375, "3": 1.55, "4": 1.725, "5": 1.9 };
+      return round1(bmr * (factors[String(activityChoice)] || 1.2));
+    }
+
+    function getTodayDateString() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    }
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          return { profile: parsed.profile || {}, history: parsed.history || {} };
+        }
+      } catch (e) {}
+      return { profile: {}, history: {} };
+    }
+
+    function saveData(data) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
+    }
+
+    let appData = loadData();
+    let foodSelectionMode = "db";
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.remove("hidden");
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(() => toast.classList.add("hidden"), 3200);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("active", p.id === `tab-${tabId}`));
+      document.querySelectorAll(".nav-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tabId));
+      const titles = {
+        "today": "Today's Summary",
+        "add-food": "Log Food Eaten Today",
+        "profile": "Profile & Health Calculators",
+        "history": "Calorie History"
+      };
+      document.getElementById("pageTitle").textContent = titles[tabId] || "BMI & Calorie Tracker";
+      renderAll();
+    }
+
+    function capitalize(str) { return str ? str.charAt(0).toUpperCase() + str.slice(1) : ""; }
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function renderHeader() {
+      const today = getTodayDateString();
+      const formatted = new Date().toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+      document.getElementById("currentDateDisplay").textContent = `${formatted} (${today})`;
+      const p = appData.profile || {};
+      document.getElementById("headerUserName").textContent = p.name ? `${p.name} • TDEE: ${p.tdee} kcal` : "Guest (Set up Profile)";
+    }
+
+    function renderTodayTab() {
+      const today = getTodayDateString();
+      const logs = (appData.history && appData.history[today]) ? appData.history[today] : [];
+      const p = appData.profile || {};
+      const hasProfile = Boolean(p && p.tdee);
+      document.getElementById("profilePromptBanner").classList.toggle("hidden", hasProfile);
+
+      const totalCal = round1(logs.reduce((s, item) => s + Number(item.calories || 0), 0));
+      document.getElementById("todayConsumedVal").textContent = totalCal;
+
+      const progressBar = document.getElementById("calorieProgressBar");
+      const statusText = document.getElementById("calorieStatusText");
+      const targetValEl = document.getElementById("todayTargetVal");
+      const bmrSubEl = document.getElementById("todayBmrSubtext");
+      const remLabelEl = document.getElementById("remainingLabel");
+      const remValEl = document.getElementById("todayRemainingVal");
+      const remSubEl = document.getElementById("remainingSubtext");
+
+      if (hasProfile) {
+        const tdee = Number(p.tdee);
+        const remaining = round1(tdee - totalCal);
+        const pct = Math.min(100, Math.round((totalCal / tdee) * 100));
+        targetValEl.textContent = tdee;
+        bmrSubEl.textContent = `BMR: ${p.bmr} kcal/day`;
+        progressBar.style.width = `${pct}%`;
+
+        if (remaining >= 0) {
+          progressBar.classList.remove("over-limit");
+          remLabelEl.textContent = "Calories Remaining";
+          remValEl.textContent = remaining;
+          remSubEl.textContent = "Within daily target";
+          statusText.textContent = `${pct}% of daily target (${tdee} kcal)`;
+        } else {
+          progressBar.classList.add("over-limit");
+          remLabelEl.textContent = "Calories Over Target";
+          remValEl.textContent = Math.abs(remaining);
+          remSubEl.textContent = "Exceeded daily TDEE goal";
+          statusText.textContent = `Over target by ${Math.abs(remaining)} kcal`;
+        }
+      } else {
+        targetValEl.textContent = "—";
+        bmrSubEl.textContent = "BMR: — kcal/day";
+        remLabelEl.textContent = "Calories Remaining";
+        remValEl.textContent = "—";
+        remSubEl.textContent = "Set up Profile to see daily goal";
+        progressBar.style.width = "0%";
+        statusText.textContent = "No daily goal configured yet";
+      }
+
+      const bmiValEl = document.getElementById("todayBmiVal");
+      const bmiBadgeEl = document.getElementById("todayBmiBadge");
+      const whSubEl = document.getElementById("todayWeightHeightSubtext");
+
+      if (p && p.bmi) {
+        bmiValEl.textContent = p.bmi;
+        bmiBadgeEl.textContent = p.bmi_category;
+        bmiBadgeEl.className = `pill-badge ${String(p.bmi_category).toLowerCase()}`;
+        whSubEl.textContent = `${p.weight} kg • ${p.height} cm`;
+      } else {
+        bmiValEl.textContent = "—";
+        bmiBadgeEl.textContent = "Not set";
+        bmiBadgeEl.className = "pill-badge";
+        whSubEl.textContent = "Weight & Height not set";
+      }
+
+      const container = document.getElementById("todayLogsContainer");
+      if (logs.length === 0) {
+        container.innerHTML = `<div class="empty-state"><p>No food logged for today yet.</p></div>`;
+        return;
+      }
+
+      container.innerHTML = `<div class="log-list">${logs.map((item, idx) => `
+        <div class="log-item">
+          <div class="log-item-left">
+            <span class="log-index">${idx + 1}</span>
+            <div>
+              <div class="log-food-name">${escapeHtml(item.food)}</div>
+              <div class="log-food-grams">${item.grams}g</div>
+            </div>
+          </div>
+          <div class="log-item-right">
+            <span class="log-calories">${item.calories} kcal</span>
+            <button class="icon-delete-btn" data-del-index="${idx}" title="Remove item">✕</button>
+          </div>
+        </div>
+      `).join("")}</div>`;
+
+      container.querySelectorAll("[data-del-index]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const idx = Number(btn.dataset.delIndex);
+          appData.history[today].splice(idx, 1);
+          if (appData.history[today].length === 0) delete appData.history[today];
+          saveData(appData);
+          renderAll();
+          showToast("Food entry removed.");
+        });
+      });
+    }
+
+    function renderFoodDatabaseUI() {
+      const selectEl = document.getElementById("foodDbSelect");
+      const sortedFoods = Object.entries(FOOD_DB).sort((a, b) => a[0].localeCompare(b[0]));
+
+      if (selectEl.options.length === 0) {
+        selectEl.innerHTML = sortedFoods.map(([food, cal]) =>
+          `<option value="${food}">${capitalize(food)} (${cal} kcal / 100g)</option>`
+        ).join("");
+      }
+
+      const searchTerm = (document.getElementById("foodSearchInput").value || "").trim().toLowerCase();
+      const gridEl = document.getElementById("foodDbGrid");
+      const currentSelected = selectEl.value;
+
+      gridEl.innerHTML = sortedFoods.filter(([food]) => food.includes(searchTerm)).map(([food, cal]) => `
+        <div class="food-card ${food === currentSelected && foodSelectionMode === 'db' ? 'selected' : ''}" data-food="${food}">
+          <span class="food-card-name">${capitalize(food)}</span>
+          <span class="food-card-cal">${cal} kcal / 100g</span>
+        </div>
+      `).join("");
+
+      gridEl.querySelectorAll(".food-card").forEach(card => {
+        card.addEventListener("click", () => {
+          setFoodMode("db");
+          selectEl.value = card.dataset.food;
+          renderFoodDatabaseUI();
+          updateCaloriePreview();
+          document.getElementById("foodGrams").focus();
+        });
+      });
+    }
+
+    function updateCaloriePreview() {
+      const grams = parseFloat(document.getElementById("foodGrams").value);
+      const formulaEl = document.getElementById("previewFormula");
+      const valEl = document.getElementById("previewCaloriesVal");
+      let foodName = foodSelectionMode === "db" ? document.getElementById("foodDbSelect").value : (document.getElementById("customFoodName").value || "Custom food").trim();
+      let calPer100 = foodSelectionMode === "db" ? FOOD_DB[foodName] : parseFloat(document.getElementById("customCalPer100").value);
+
+      if (!isNaN(calPer100) && calPer100 >= 0 && !isNaN(grams) && grams > 0) {
+        const total = round1((calPer100 * grams) / 100);
+        formulaEl.textContent = `${grams}g of ${capitalize(foodName)} @ ${calPer100} kcal/100g`;
+        valEl.textContent = total.toFixed(1);
+      } else {
+        formulaEl.textContent = "Select food & enter amount in grams";
+        valEl.textContent = "0.0";
+      }
+    }
+
+    function renderProfileTab() {
+      const p = appData.profile || {};
+      const summaryEl = document.getElementById("profileSummaryView");
+
+      if (p.name && !document.getElementById("profName").dataset.touched) {
+        document.getElementById("profName").value = p.name;
+        document.getElementById("profAge").value = p.age;
+        document.getElementById("profGender").value = p.gender;
+        document.getElementById("profWeight").value = p.weight;
+        document.getElementById("profHeight").value = p.height;
+        document.getElementById("profActivity").value = String(p.activity || "1");
+      }
+
+      if (!p.bmi) {
+        summaryEl.innerHTML = `<div class="empty-state"><p>No profile configured yet. Fill out the form on the left to calculate your BMI, BMR, and TDEE.</p></div>`;
+        return;
+      }
+
+      const catClass = String(p.bmi_category).toLowerCase();
+      summaryEl.innerHTML = `
+        <div class="profile-details-list">
+          <div class="profile-detail-box"><span>Name</span><strong>${escapeHtml(p.name)}</strong></div>
+          <div class="profile-detail-box"><span>Age &amp; Gender</span><strong>${p.age} yrs • ${escapeHtml(p.gender)}</strong></div>
+          <div class="profile-detail-box"><span>Weight &amp; Height</span><strong>${p.weight} kg • ${p.height} cm</strong></div>
+          <div class="profile-detail-box"><span>BMI</span><strong>${p.bmi} <span class="pill-badge ${catClass}">${p.bmi_category}</span></strong></div>
+          <div class="profile-detail-box"><span>Basal Metabolic Rate (BMR)</span><strong>${p.bmr} kcal/day</strong></div>
+          <div class="profile-detail-box"><span>Daily Calorie Need (TDEE)</span><strong>${p.tdee} kcal/day</strong></div>
+        </div>
+      `;
+    }
+
+    function renderHistoryTab() {
+      const history = appData.history || {};
+      const container = document.getElementById("historyContainer");
+      const dates = Object.keys(history).sort().reverse();
+
+      if (dates.length === 0) {
+        container.innerHTML = `<div class="empty-state"><p>No history available yet. Log your first meal in the "Add Food" tab!</p></div>`;
+        return;
+      }
+
+      container.innerHTML = dates.map(day => {
+        const logs = history[day] || [];
+        const dayTotal = round1(logs.reduce((s, item) => s + Number(item.calories || 0), 0));
+        return `
+          <div class="history-day-card">
+            <div class="history-day-header"><span>📅 Date: ${day}</span><span>Total: ${dayTotal} kcal</span></div>
+            <div class="history-day-body">
+              <div class="log-list">${logs.map((item, idx) => `
+                <div class="log-item">
+                  <div class="log-item-left">
+                    <span class="log-index">${idx + 1}</span>
+                    <div>
+                      <div class="log-food-name">${escapeHtml(item.food)}</div>
+                      <div class="log-food-grams">${item.grams}g</div>
+                    </div>
+                  </div>
+                  <div class="log-item-right"><span class="log-calories">${item.calories} kcal</span></div>
+                </div>
+              `).join("")}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderAll() {
+      renderHeader();
+      renderTodayTab();
+      renderFoodDatabaseUI();
+      updateCaloriePreview();
+      renderProfileTab();
+      renderHistoryTab();
+    }
+
+    function setFoodMode(mode) {
+      foodSelectionMode = mode;
+      document.getElementById("modeDbBtn").classList.toggle("active", mode === "db");
+      document.getElementById("modeCustomBtn").classList.toggle("active", mode === "custom");
+      document.getElementById("dbFoodGroup").classList.toggle("hidden", mode !== "db");
+      document.getElementById("customFoodGroup").classList.toggle("hidden", mode !== "custom");
+      updateCaloriePreview();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll(".nav-btn").forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
+      document.querySelectorAll("[data-goto]").forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.goto)));
+      document.getElementById("modeDbBtn").addEventListener("click", () => setFoodMode("db"));
+      document.getElementById("modeCustomBtn").addEventListener("click", () => setFoodMode("custom"));
+
+      document.querySelectorAll(".chip-btn").forEach(chip => {
+        chip.addEventListener("click", () => {
+          document.getElementById("foodGrams").value = chip.dataset.grams;
+          updateCaloriePreview();
+        });
+      });
+
+      ["foodDbSelect", "customFoodName", "customCalPer100", "foodGrams"].forEach(id => {
+        document.getElementById(id).addEventListener("input", updateCaloriePreview);
+      });
+
+      document.getElementById("foodSearchInput").addEventListener("input", renderFoodDatabaseUI);
+
+      document.getElementById("addFoodForm").addEventListener("submit", e => {
+        e.preventDefault();
+        let foodName = foodSelectionMode === "db"
+          ? document.getElementById("foodDbSelect").value.trim().toLowerCase()
+          : document.getElementById("customFoodName").value.trim().toLowerCase();
+        let calPer100g = foodSelectionMode === "db"
+          ? FOOD_DB[foodName]
+          : parseFloat(document.getElementById("customCalPer100").value);
+
+        if (!foodName) return showToast("Please enter a food name.");
+        if (isNaN(calPer100g) || calPer100g < 0) return showToast("Please enter valid calories per 100g.");
+
+        const grams = parseFloat(document.getElementById("foodGrams").value);
+        if (isNaN(grams) || grams <= 0) return showToast("Amount in grams must be greater than 0.");
+
+        const calories = round1((calPer100g * grams) / 100);
+        const today = getTodayDateString();
+        if (!appData.history[today]) appData.history[today] = [];
+        appData.history[today].push({ food: foodName, grams, calories });
+
+        saveData(appData);
+        document.getElementById("foodGrams").value = "";
+        document.getElementById("customFoodName").value = "";
+        document.getElementById("customCalPer100").value = "";
+        renderAll();
+        showToast(`Added: ${grams}g of ${capitalize(foodName)} = ${calories} kcal`);
+      });
+
+      document.getElementById("profileForm").addEventListener("input", () => {
+        document.getElementById("profName").dataset.touched = "true";
+      });
+
+      document.getElementById("profileForm").addEventListener("submit", e => {
+        e.preventDefault();
+        const name = document.getElementById("profName").value.trim() || "User";
+        const age = parseInt(document.getElementById("profAge").value, 10);
+        const gender = document.getElementById("profGender").value;
+        const weight = parseFloat(document.getElementById("profWeight").value);
+        const height = parseFloat(document.getElementById("profHeight").value);
+        const activity = document.getElementById("profActivity").value;
+
+        if (isNaN(age) || age <= 0 || age > 120) return showToast("Please enter a valid age between 1 and 120.");
+        if (isNaN(weight) || weight <= 0) return showToast("Weight must be greater than 0.");
+        if (isNaN(height) || height <= 0) return showToast("Height must be greater than 0.");
+
+        const bmi = calculateBmi(weight, height);
+        const bmi_category = getBmiCategory(bmi);
+        const bmr = calculateBmr(weight, height, age, gender);
+        const tdee = calculateTdee(bmr, activity);
+
+        appData.profile = { name, age, gender, weight, height, activity, bmi, bmi_category, bmr, tdee };
+        saveData(appData);
+        renderAll();
+        showToast(`Profile saved! BMI: ${bmi} (${bmi_category}) • Daily Goal: ${tdee} kcal`);
+      });
+
+      document.getElementById("clearHistoryBtn").addEventListener("click", () => {
+        if (confirm("Are you sure you want to clear all logged food history?")) {
+          appData.history = {};
+          saveData(appData);
+          renderAll();
+          showToast("Food history cleared.");
+        }
+      });
+
+      document.getElementById("exportJsonBtn").addEventListener("click", () => {
+        const blob = new Blob([JSON.stringify(appData, null, 4)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "data.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast("Downloaded data.json!");
+      });
+
+      document.getElementById("importJsonInput").addEventListener("change", e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = evt => {
+          try {
+            const parsed = JSON.parse(evt.target.result);
+            if (typeof parsed === "object" && parsed !== null) {
+              appData = { profile: parsed.profile || {}, history: parsed.history || {} };
+              saveData(appData);
+              document.getElementById("profName").dataset.touched = "";
+              renderAll();
+              showToast("Imported data.json successfully!");
+            }
+          } catch (err) {
+            showToast("Invalid JSON file.");
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = "";
+      });
+
+      renderAll();
+    });
+  </script>
+</body>
+</html>
